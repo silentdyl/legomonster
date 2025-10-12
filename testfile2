@@ -1,0 +1,127 @@
+from hub import light_matrix, motion_sensor
+from motor import ERROR, SMART_BRAKE
+import runloop, motor_pair, sys
+from hub import port
+from hub import light_matrix, motion_sensor
+from motor import SMART_BRAKE
+import runloop
+import motor_pair
+import sys
+from hub import port
+import orientation
+import math
+import motor
+import color_sensor
+
+
+gyro_error_rate = 0.93
+slowingdown = 360
+slow_speed = 400
+
+
+def degreesfordistance(distance_cm):
+    return int((distance_cm / 16.014) * 360)
+
+
+# Compatibility wrapper for motor_pair movement: try common signatures
+def _pair_move(pair_id, steering, speed):
+    # Try signature: move(pair, steering, velocity=speed)
+    try:
+        motor_pair.move(pair_id, steering, velocity=speed)
+        return
+    except Exception:
+        pass
+
+    # Try signature: move(pair, steering, speed)
+    try:
+        motor_pair.move(pair_id, steering, speed)
+        return
+    except Exception:
+        pass
+
+    # Fallback: use move_tank or start_tank if available. Map steering to left/right speeds.
+    left_speed = int(speed + steering)
+    right_speed = int(speed - steering)
+    if hasattr(motor_pair, 'move_tank'):
+        try:
+            # many firmwares expect (pair, left_speed, right_speed)
+            motor_pair.move_tank(pair_id, left_speed, right_speed)
+            return
+        except Exception:
+            pass
+
+    if hasattr(motor_pair, 'start_tank'):
+        try:
+            motor_pair.start_tank(left_speed, right_speed)
+            runloop.sleep_ms(100)
+            motor_pair.stop(pair_id)
+            return
+        except Exception:
+            pass
+
+
+async def gyro_reset():
+    motion_sensor.reset_yaw(0)
+    while motion_sensor.tilt_angles()[0] != 0:
+        motion_sensor.reset_yaw(0)
+        runloop.sleep_ms(1)
+
+
+async def gyro_turn_right(degrees, speed):
+    degrees = -degrees * gyro_error_rate
+    await gyro_reset()
+    print(motion_sensor.tilt_angles()[0] * 0.1)
+    while (motion_sensor.tilt_angles()[0] * 0.1) > degrees:
+        gap = degrees - (motion_sensor.tilt_angles()[0] * 0.1)
+        if gap > -35:
+            speed = 40
+        if gap > -10:
+            speed = 20
+        # tank-style drive: left, right
+        motor_pair.move_tank(motor_pair.PAIR_1, speed, -speed)
+
+        print("stop motors")
+        motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+        runloop.sleep_ms(500)
+        print(motion_sensor.tilt_angles()[0] * 0.1)
+
+
+async def gyro_straight(distance_cm, speed):
+    # Reset yaw and wait for stable
+    await gyro_reset()
+    print("3")
+    print(motion_sensor.tilt_angles()[0] * 0.1)
+
+    distancedegrees = degreesfordistance(distance_cm)
+    motor.reset_relative_position(port.B, 0)  # reset relative degrees counted to 0
+    while math.fabs(motor.relative_position(port.B)) < distancedegrees:
+        distanceremaining = distancedegrees - math.fabs(motor.relative_position(port.B))
+        if distanceremaining < slowingdown:
+            speed = slow_speed
+
+    tilt_error = motion_sensor.tilt_angles()[0] * -0.1
+    correction = (tilt_error * -2)
+
+    _pair_move(motor_pair.PAIR_1, int(correction), speed)
+    motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+
+
+async def gyro_turn_left(degrees, speed):
+    # Turn left by using the gyro
+    await gyro_reset()
+    degrees = degrees * gyro_error_rate
+    print(motion_sensor.tilt_angles()[0] * 0.1)
+    print("before")
+    print(degrees)
+    print(motion_sensor.tilt_angles()[0] * 0.1)
+    while (motion_sensor.tilt_angles()[0] * 0.1) < degrees:
+        motor_pair.move_tank(motor_pair.PAIR_1, -speed, speed)
+    motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+
+
+async def main():
+    await motor_pair.pair(motor_pair.PAIR_1, port.A, port.B)
+    await gyro_straight(45, 280)
+
+
+runloop.run(main())
