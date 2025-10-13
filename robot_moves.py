@@ -232,3 +232,21 @@ async def gyro_back(distance_cm, speed):
 
     motor_pair.stop(motor_pair.PAIR_1)
 
+
+async def emergency_stop():
+   ## """Immediately stop all motors and indicate safe state."""
+    try:
+        motor_pair.stop(motor_pair.PAIR_1, stop=motor.BRAKE)
+    except Exception:
+        pass
+    try:
+        motor_pair.stop(motor_pair.PAIR_2)
+        motor_pair.stop(motor_pair.PAIR_3)
+    except Exception:
+        pass
+    # optionally light hub or log
+    try:
+        light_matrix.write('X')  # or set a pattern if available
+    except Exception:
+        pass
+
