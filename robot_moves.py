@@ -44,6 +44,29 @@ def degrees_for_distance(distance_cm):
     """
     return int((distance_cm / 16.014) * 360)
 
+async def turn_motor_degrees_motorclass(port_obj, degrees, speed=300, hold=True):
+    """
+    Turn a single motor a number of degrees using the Motor class helper.
+
+    Inputs:
+    - port_obj: port object (e.g. port.A) or a Motor instance
+    - degrees: signed degrees to rotate (positive/negative)
+    - speed: power/speed parameter the API expects (units depend on implementation)
+    - hold: if True, brake/hold at the end; if False, coast
+
+    Behavior:
+    - Uses Motor.run_for_degrees where available (blocking). Wrap in async to
+      keep API consistent with your runloop.
+    """
+    # If 'port_obj' is a port identifier, construct Motor; if it's already a Motor use it.
+    motor = port_obj if isinstance(port_obj, Motor) else Motor(port_obj)
+
+    # Many Motor.run_for_degrees signatures are: run_for_degrees(degrees, speed, brake=True)
+    # Adapt the call if your API uses different parameter names.
+    motor.run_for_degrees(degrees, speed, brake=hold)
+
+    # Small await to yield to runloop if desired
+    await runloop.sleep_ms(1)
 
 async def robot_setup():
     """Perform basic setup: pair left/right drive motors.
@@ -103,38 +126,17 @@ async def gyro_turn_right(degrees, speed):
     print(motion_sensor.tilt_angles()[0] * 0.1)
 
 
-async def gyro_straight(distance_cm, speed):
-    """Drive forward approximately `distance_cm`, maintaining heading.
+async def gyro_reset():
+    """Reset the yaw reading to zero and wait until the sensor stabilizes.
 
-    The function converts the requested linear distance into wheel degrees,
-    then uses a very simple proportional correction based on the yaw error
-    (motion_sensor.tilt_angles()[0]).
+    Many hub motion sensors take a few cycles to settle after a reset.
+    This routine actively waits (with small sleeps) until tilt_angles[0]
+    reads zero.
     """
-    await gyro_reset()
-    print("start gyro_straight")
-    print(motion_sensor.tilt_angles()[0] * 0.1)
-
-    dist_deg = degrees_for_distance(distance_cm)
-    # Reset the encoder for the left/right motor used to measure distance
-    motor.reset_relative_position(port.B, 0)
-
-    # Drive until the encoder reports we've traveled the expected degrees
-    while math.fabs(motor.relative_position(port.B)) < dist_deg:
-        dist_remaining = dist_deg - math.fabs(motor.relative_position(port.B))
-        # Slow as we approach the target distance
-        if dist_remaining < slowing_down:
-            speed = slow_speed
-
-        # motion_sensor.tilt_angles()[0] is often tenths of degrees; *-0.1 = signed degree error
-        err = motion_sensor.tilt_angles()[0] * -0.1
-        # correction is proportional to error (empirically chosen gain)
-        correction = int(err * -2)
-        # Apply steering correction while driving forward
-        motor_pair.move(motor_pair.PAIR_1, correction, velocity=speed)
-
-    motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
-
-
+    motion_sensor.reset_yaw(0)
+    while motion_sensor.tilt_angles()[0] != 0:
+        motion_sensor.reset_yaw(0)
+        await runloop.sleep_ms(1)
 async def gyro_turn_left(degrees, speed):
     """Turn the robot left by approximately `degrees`."""
     await gyro_reset()
