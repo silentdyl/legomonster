@@ -74,7 +74,7 @@ async def robot_setup():
     This function should be awaited during initialization so that the
     motor_pair is configured before driving functions run.
     """
-    motor_pair.pair(motor_pair.PAIR_1, port.B, port.D)
+    motor_pair.pair(motor_pair.PAIR_1, port.A, port.B)  # left/right drive motors
 
 
 async def gyro_reset():
