@@ -7,7 +7,7 @@ async def main():
 
 runloop.run(main())
 
-from hub import light_matrix, motion_sensor, port, motion_sensor
+from hub import light_matrix, motion_sensor, port
 import motor
 """robot_moves.py
 
@@ -262,14 +262,28 @@ async def emergency_stop():
         pass
 
 
-#def main():
-    # Initialize the robot
+
 
 async def MissionRedBlue():
     # Perform the first mission
         await robot_setup()
         await gyro_straight(160,high_speed)
 
+async def MissionOne():
+    await robot_setup()
+    await motor.run_for_degrees(hook,45,high_speed)
+    await gyro_straight(60,medium_speed)
+    await gyro_back(11,medium_speed)
+    await gyro_straight(23,medium_speed)
+    await motor.run_for_degrees(hook,8,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await motor.run_for_degrees(hook,-20,high_speed)
+    await gyro_turn_right(100,medium_speed)
+    await gyro_straight(37,medium_speed)
+    await gyro_turn_left(55,medium_speed)
+    await motor.run_for_degrees(hook,30,high_speed)
+    await gyro_turn_right(120,medium_speed)
+    await gyro_straight(45,medium_speed)
 async def MissionTwo():
     # Perform the second mission
     await robot_setup()
@@ -289,7 +303,8 @@ async def Turn():
     await robot_setup()
     await gyro_turn_left(90,slow_speed)
 
-
+#def main():
+    #Initialize the robot
 
 async def main_sequence():
     try:
@@ -298,9 +313,9 @@ async def main_sequence():
     finally:
         # Ensure motors are stopped even if something fails
         try:
-            motor_pair.stop(motor_pair.PAIR_1, stop=motor.BRAKE)
+            emergency_stop() # stop all motors
         except Exception:
             pass
 
 # Start the sequence
-runloop.run(MissionTwo())    # Release the grabber
+runloop.run(main_sequence())    
