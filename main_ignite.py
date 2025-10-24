@@ -298,7 +298,19 @@ async def MissionTwo():
     await gyro_straight(9,medium_speed)
     await gyro_back(9,medium_speed)
     await motor.run_for_degrees(hook,-95,high_speed)
+    await motor.run_for_degrees(port.A,45,medium_speed)
+    await gyro_straight(12,medium_speed)
+    await motor.run_for_degrees(port.B,45,medium_speed)
+    
 
+    try:
+        for i in range(10):#for go forward 5cm, go back 5cm 10x
+            await gyro_straight(5,medium_speed)
+            await gyro_back(5,medium_speed)
+    except Exception:
+        pass
+    await motor.run_for_degrees(hook,-45,medium_speed)
+    await motor
 async def Turn():
     await robot_setup()
     await gyro_turn_left(90,slow_speed)
