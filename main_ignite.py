@@ -315,13 +315,52 @@ async def Turn():
     await robot_setup()
     await gyro_turn_left(90,slow_speed)
 
+
+async def MissionThreeBlue():
+    # Perform the 1st mission from Blue Side (right side)
+    await robot_setup()
+    await gyro_straight(40.5,high_speed)
+    try:
+        for i in range(10):#for go forward 5cm, go back 5cm 10x
+            await gyro_straight(5,medium_speed)
+            await gyro_back(5,medium_speed)
+    except Exception:
+        pass
+    await gyro_back(10,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await gyro_straight(15,medium_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_straight(21,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_straight(1,ultraslow_speed)
+    await motor.run_for_degrees(hammer,90,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await gyro_straight(2,ultraslow_speed)
+    await gyro_turn_left(-90,medium_speed)
+    await motor.run_for_degrees(hammer,10,slow_speed)
+    await gyro_straight(60,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_straight(2,ultraslow_speed)
+    await gyro_turn_left(45,medium_speed)
+    await gyro_straight(20.5,medium_speed)
+    await motor.run_for_degrees(hammer,-45,high_speed)
+    await gyro_back(10,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await motor.run_for_degrees(port.A,90,medium_speed)
+    await gyro_straight(52,high_speed)
+    await gyro_turn_left(-90,medium_speed)
+    await gyro_straight(75,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_straight(15,high_speed)
+motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+
 #def main():
     #Initialize the robot
 
 async def main_sequence():
     try:
-        await MissionRedBlue()# runs until finished
-        await MissionTwo() # runs after GreenRun completes
+        await MissionThreeBlue()# runs until finished
+        #await MissionTwo() # runs after GreenRun completes
     finally:
         # Ensure motors are stopped even if something fails
         try:
