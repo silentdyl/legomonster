@@ -265,10 +265,28 @@ async def emergency_stop():
 
 
 async def MissionRedBlue():
-    # Perform the first mission
+    # Perform the first mission Run
+    # from Red Side (left side) - We need to figure out positioning
         await robot_setup()
         await gyro_straight(160,high_speed)
-
+        await gyro_straight(59,medium_speed)
+        await motor.run_for_degrees(hammer,90,high_speed)
+        await gyro_turn_left(130,medium_speed)
+        await gyro_straight(27,medium_speed)
+        await motor.run_for_degrees(hook,60,high_speed)
+        await gyro_turn_right(90,medium_speed)
+        await gyro_straight(15,medium_speed)
+        await gyro_turn_left(125,medium_speed)
+        await gyro_back(23,medium_speed)
+        await motor.run_for_degrees(hook,-90,high_speed)
+        await gyro_turn_right(20,medium_speed)
+        await motor.run_for_degrees(hook,90,high_speed) 
+        await motor.run_for_degrees(hammer,90,medium_speed)
+        await gyro_straight(5,medium_speed)
+        await motor.run_for_degrees(hammer,110,medium_speed)
+        await (high_speed)
+              
+              
 async def MissionOne():
     await robot_setup()
     await motor.run_for_degrees(hook,45,high_speed)
@@ -301,8 +319,6 @@ async def MissionTwo():
     await motor.run_for_degrees(port.A,45,medium_speed)
     await gyro_straight(12,medium_speed)
     await motor.run_for_degrees(port.B,45,medium_speed)
-    
-
     try:
         for i in range(10):#for go forward 5cm, go back 5cm 10x
             await gyro_straight(5,medium_speed)
@@ -311,6 +327,48 @@ async def MissionTwo():
         pass
     await motor.run_for_degrees(hook,-45,medium_speed)
     await motor
+
+
+
+async def MissionThreeBlue():
+    # Perform the 1st mission from Blue Side (right side)
+    # We need to figure out positioning
+    await robot_setup()
+    await gyro_straight(40.5,high_speed)
+    try:
+        for i in range(10):#for go forward 5cm, go back 5cm 10x
+            await gyro_back(5,medium_speed)
+            await gyro_straight(5,medium_speed)
+    except Exception:
+        pass
+    await gyro_straight(10,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await gyro_back(15,medium_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_back(21,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_back(1,ultraslow_speed)
+    await motor.run_for_degrees(hammer,90,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await gyro_back(2,ultraslow_speed)
+    await gyro_turn_left(-90,medium_speed)
+    await motor.run_for_degrees(hammer,10,slow_speed)
+    await gyro_back(60,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_back(2,ultraslow_speed)
+    await gyro_turn_left(45,medium_speed)
+    await gyro_back(20.5,medium_speed)
+    await motor.run_for_degrees(hammer,-45,high_speed)
+    await gyro_straight(10,medium_speed)
+    await gyro_turn_left(-45,medium_speed)
+    await motor.run_for_degrees(port.A,90,medium_speed)
+    await gyro_back(52,high_speed)
+    await gyro_turn_left(-90,medium_speed)
+    await gyro_back(75,high_speed)
+    await gyro_turn_right(45,medium_speed)
+    await gyro_back(15,high_speed)
+motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+
 async def Turn():
     await robot_setup()
     await gyro_turn_left(90,slow_speed)
