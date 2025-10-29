@@ -1,12 +1,6 @@
 from hub import light_matrix
 import runloop
 
-async def main():
-    # write your code here
-    await light_matrix.write("Hi!")
-
-runloop.run(main())
-
 from hub import light_matrix, motion_sensor, port
 import motor
 """robot_moves.py
@@ -263,14 +257,15 @@ async def emergency_stop():
 
 
 
-
+#Currently set to Block 3
 async def MissionRedBlue():
     # Perform the first mission Run
     # from Red Side (left side) - We need to figure out positioning
         await robot_setup()
+        await motor.run_for_degrees(hammer,-90,high_speed) #putting the hammer up so we know where we are starting
         await gyro_straight(160,high_speed)
-        await gyro_straight(59,medium_speed)
-        await motor.run_for_degrees(hammer,90,high_speed)
+        await gyro_straight(59,medium_speed)  #Why do we go straight and then straight again
+        await motor.run_for_degrees(hammer,90,high_speed) 
         await gyro_turn_left(130,medium_speed)
         await gyro_straight(27,medium_speed)
         await motor.run_for_degrees(hook,60,high_speed)
@@ -280,13 +275,14 @@ async def MissionRedBlue():
         await gyro_back(23,medium_speed)
         await motor.run_for_degrees(hook,-90,high_speed)
         await gyro_turn_right(20,medium_speed)
-        await motor.run_for_degrees(hook,90,high_speed) 
+        await motor.run_for_degrees(hook,90,high_speed)
         await motor.run_for_degrees(hammer,90,medium_speed)
         await gyro_straight(5,medium_speed)
         await motor.run_for_degrees(hammer,110,medium_speed)
-        await (high_speed)
-              
-              
+        await gyro_straight(10,medium_speed)
+
+
+
 async def MissionOne():
     await robot_setup()
     await motor.run_for_degrees(hook,45,high_speed)
@@ -326,9 +322,9 @@ async def MissionTwo():
     except Exception:
         pass
     await motor.run_for_degrees(hook,-45,medium_speed)
-    await motor
 
 
+#Currently Set to Block 2
 
 async def MissionThreeBlue():
     # Perform the 1st mission from Blue Side (right side)
@@ -367,25 +363,30 @@ async def MissionThreeBlue():
     await gyro_back(75,high_speed)
     await gyro_turn_right(45,medium_speed)
     await gyro_back(15,high_speed)
-motor_pair.stop(motor_pair.PAIR_1, stop=SMART_BRAKE)
+    await emergency_stop()
 
 async def Turn():
     await robot_setup()
     await gyro_turn_left(90,slow_speed)
 
+#Function is to test that the hammer is working
+async def testhammer():
+
+ await motor.run_for_degrees(port.F, -90, 500)
+
 #def main():
     #Initialize the robot
 
-async def main_sequence():
+async def main():
     try:
         await MissionRedBlue()# runs until finished
-        await MissionTwo() # runs after GreenRun completes
+        #await MissionTwo() # runs after GreenRun completes
     finally:
         # Ensure motors are stopped even if something fails
         try:
-            emergency_stop() # stop all motors
+            await emergency_stop() # stop all motors
         except Exception:
             pass
 
 # Start the sequence
-runloop.run(main_sequence())    
+runloop.run(main())
